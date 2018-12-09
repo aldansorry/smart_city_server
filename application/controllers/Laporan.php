@@ -11,26 +11,68 @@ class Laporan extends REST_Controller {
 		$this->response(array("status"=>"success","result" => $get_pembeli));
 	}
 	function laporan_post() {
-
-		$action = $this->post('action');
-		$data_pembeli = array(
-			'id_pembeli' => $this->post('id_pembeli'),
-			'nama' => $this->post('nama'),
-			'alamat' => $this->post('alamat'),
-			'telpn' => $this->post('telpn'),
-			'photo_id' => $this->post('photo_id')
-		);
-		if ($action==='post'){
-			$this->insertPembeli($data_pembeli);
-		}else if ($action==='put'){
-			$this->updatePembeli($data_pembeli);
-		}else if ($action==='delete'){
-			$this->deletePembeli($data_pembeli);
-		}else{
-			$this->response(array("status"=>"failed","message" => "action harus
-
-				diisi"));
+		$uploaddir = str_replace("application/", "", APPPATH).'upload/';
+		if(!file_exists($uploaddir) && !is_dir($uploaddir)) {
+			echo mkdir($uploaddir, 0750, true);
 		}
+		if (!empty($_FILES)){
+			$path = $_FILES['gambar']['name'];
+			$ext = pathinfo($path, PATHINFO_EXTENSION);
+			$user_img = rand(10000,99999) . '.' . $ext;
+			$uploadfile = $uploaddir . $user_img;
+			$data_pembeli['gambar'] = "upload/".$user_img;
+		}else{
+			$data_pembeli['gambar']="";
+		}
+
+
+		if (empty($_FILES)) {
+			$this->response(array("status"=>"failed","message" => "gambar harus idisi"));
+		}else{
+
+			$gambar = "";
+			$data_pembeli = array(
+				'judul' => $this->post('judul'),
+				'deskripsi' => $this->post('deskripsi'),
+				'lattitude' => $this->post('lattitude'),
+				'longtitude' => $this->post('longtitude'),
+				'gambar' => $user_img,
+				'status' => $this->post('status'),
+			);
+
+			$insert = $this->db->insert('laporan',$data_pembeli);
+			if (!empty($_FILES)){
+					if ($_FILES["gambar"]["name"]) {
+
+						if
+
+							(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
+
+						{
+							$insert_image = "success";
+
+						} else{
+							$insert_image = "failed";
+
+						}
+					}else{
+						$insert_image = "Image Tidak ada Masukan";
+					}
+					$data_pembeli['gambar'] = base_url()."upload/".$user_img;
+				}else{
+
+					$data_pembeli['gambar'] = "";
+
+				}
+				if ($insert){
+					$this->response(array('status'=>'success','result' =>
+
+						array($data_pembeli),"message"=>$insert));
+
+				}
+			$this->response(array("status"=>"success","message" => "Berhasil"));
+		}
+		
+		
 	}
 }
-	
