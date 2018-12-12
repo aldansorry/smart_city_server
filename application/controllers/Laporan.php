@@ -7,7 +7,7 @@ use Restserver\Libraries\REST_Controller;
 class Laporan extends REST_Controller {
 
 	function laporan_get(){
-		$get_pembeli = $this->db->query("SELECT * FROM laporan")->result();
+		$get_pembeli = $this->db->query("SELECT laporan.*,kategori.nama as nama_kategori FROM laporan left join kategori on laporan.fk_kategori=kategori.id")->result();
 		$this->response(array("status"=>"success","result" => $get_pembeli));
 	}
 	function laporan_post() {
@@ -33,11 +33,14 @@ class Laporan extends REST_Controller {
 			$gambar = "";
 			$data_pembeli = array(
 				'judul' => $this->post('judul'),
+				'nama' => $this->post('nama'),
+				'email' => $this->post('email'),
 				'deskripsi' => $this->post('deskripsi'),
 				'lattitude' => $this->post('lattitude'),
 				'longtitude' => $this->post('longtitude'),
 				'gambar' => $user_img,
 				'status' => $this->post('status'),
+				'fk_kategori' => $this->db->where('nama',$this->post('kategori'))->get('kategori')->row(0)->id
 			);
 
 			$insert = $this->db->insert('laporan',$data_pembeli);
