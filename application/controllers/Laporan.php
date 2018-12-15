@@ -6,8 +6,15 @@ use Restserver\Libraries\REST_Controller;
 
 class Laporan extends REST_Controller {
 
-	function laporan_get(){
-		$get_pembeli = $this->db->query("SELECT laporan.*,kategori.nama as nama_kategori FROM laporan left join kategori on laporan.fk_kategori=kategori.id")->result();
+	function laporan_get($kata=null){
+		$this->db->select("laporan.*,kategori.nama as nama_kategori");
+		$this->db->join('kategori',"laporan.fk_kategori=kategori.id","left");
+		if ($kata != null) {
+			$this->db->or_like('laporan.nama',$kata);
+			$this->db->or_like('laporan.judul',$kata);
+			$this->db->or_like('laporan.deskripsi',$kata);
+		}
+		$get_pembeli = $this->db->get('laporan')->result();
 		$this->response(array("status"=>"success","result" => $get_pembeli));
 	}
 	function laporan_post() {
