@@ -52,37 +52,110 @@ class Laporan extends REST_Controller {
 
 			$insert = $this->db->insert('laporan',$data_pembeli);
 			if (!empty($_FILES)){
-					if ($_FILES["gambar"]["name"]) {
+				if ($_FILES["gambar"]["name"]) {
 
-						if
+					if
 
-							(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
+						(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
 
-						{
-							$insert_image = "success";
+					{
+						$insert_image = "success";
 
-						} else{
-							$insert_image = "failed";
+					} else{
+						$insert_image = "failed";
 
-						}
-					}else{
-						$insert_image = "Image Tidak ada Masukan";
 					}
-					$data_pembeli['gambar'] = base_url()."upload/".$user_img;
 				}else{
-
-					$data_pembeli['gambar'] = "";
-
+					$insert_image = "Image Tidak ada Masukan";
 				}
-				if ($insert){
-					$this->response(array('status'=>'success','result' =>
+				$data_pembeli['gambar'] = base_url()."upload/".$user_img;
+			}else{
 
-						array($data_pembeli),"message"=>$insert));
+				$data_pembeli['gambar'] = "";
 
-				}
+			}
+			if ($insert){
+				$this->response(array('status'=>'success','result' =>
+
+					array($data_pembeli),"message"=>$insert));
+
+			}
 			$this->response(array("status"=>"success","message" => "Berhasil"));
 		}
+	}
+	function laporan_put() {
+		$uploaddir = str_replace("application/", "", APPPATH).'upload/';
+		if(!file_exists($uploaddir) && !is_dir($uploaddir)) {
+			echo mkdir($uploaddir, 0750, true);
+		}
+		if (!empty($_FILES)){
+			$path = $_FILES['gambar']['name'];
+			$ext = pathinfo($path, PATHINFO_EXTENSION);
+			$user_img = rand(10000,99999) . '.' . $ext;
+			$uploadfile = $uploaddir . $user_img;
+			$data_pembeli['gambar'] = "upload/".$user_img;
+		}else{
+			$data_pembeli['gambar']="";
+		}
+
+
+		$this->response(array("status"=>"failed","message" => "gambar harus idisi"));
 		
+
+var_dump($this->put('judul'));
+		$gambar = "";
+		$data_pembeli = array(
+			'judul' => $this->put('judul'),
+			'nama' => $this->put('nama'),
+			'email' => $this->put('email'),
+			'deskripsi' => $this->put('deskripsi'),
+			'lattitude' => $this->put('lattitude'),
+			'longtitude' => $this->put('longtitude'),
+			'status' => $this->put('status'),
+			'fk_kategori' => $this->db->where('nama',$this->put('kategori'))->get('kategori')->row(0)->id
+		);
+		if ($empty($_FILES)) {
+			$data_pembeli['gambar'] = $user_img;
+		}
+		$this->db->where('id',$this->put('id'));
+		$insert = $this->db->update('laporan',$data_pembeli);
+		if (!empty($_FILES)){
+			if ($_FILES["gambar"]["name"]) {
+				if
+					(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
+
+				{
+					$insert_image = "success";
+
+				} else{
+					$insert_image = "failed";
+
+				}
+			}else{
+				$insert_image = "Image Tidak ada Masukan";
+			}
+			$data_pembeli['gambar'] = base_url()."upload/".$user_img;
+		}else{
+
+			$data_pembeli['gambar'] = "";
+
+		}
+		if ($insert){
+			$this->response(array('status'=>'success','result' =>
+
+				array($data_pembeli),"message"=>$insert));
+
+		}
+		$this->response(array("status"=>"success","message" => "Berhasil"));
 		
+	}
+	function laporan_delete($id) {
+		$this->db->where('id', $id);
+		$delete = $this->db->delete('laporan');
+		if ($delete) {
+			$this->response(array("status"=>"success","message" => "Berhasil"));
+		} else {
+			$this->response(array('status' => 'fail', 502));
+		}
 	}
 }
