@@ -18,136 +18,127 @@ class Laporan extends REST_Controller {
 		$this->response(array("status"=>"success","result" => $get_pembeli));
 	}
 	function laporan_post() {
-		$uploaddir = str_replace("application/", "", APPPATH).'upload/';
-		if(!file_exists($uploaddir) && !is_dir($uploaddir)) {
-			echo mkdir($uploaddir, 0750, true);
-		}
-		if (!empty($_FILES)){
-			$path = $_FILES['gambar']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$user_img = rand(10000,99999) . '.' . $ext;
-			$uploadfile = $uploaddir . $user_img;
-			$data_pembeli['gambar'] = "upload/".$user_img;
+
+		if ($this->post('judul') == "") {
+			$this->response(array("status"=>"failed","message" => "Judul harus di isi"));
+		}else if ($this->post('deskripsi') == "") {
+			$this->response(array("status"=>"failed","message" => "deskripsi harus di isi"));
+		}else if ($this->post('lattitude') == "") {
+			$this->response(array("status"=>"failed","message" => "lattitude harus di isi"));
+		}else if ($this->post('longtitude') == "") {
+			$this->response(array("status"=>"failed","message" => "longtitude harus di isi"));
+		}else if ($this->post('kategori') == "") {
+			$this->response(array("status"=>"failed","message" => "kategori harus di isi"));
 		}else{
-			$data_pembeli['gambar']="";
-		}
-
-
-		if (empty($_FILES)) {
-			$this->response(array("status"=>"failed","message" => "gambar harus idisi"));
-		}else{
-
-			$gambar = "";
-			$data_pembeli = array(
-				'judul' => $this->post('judul'),
-				'nama' => $this->post('nama'),
-				'email' => $this->post('email'),
-				'deskripsi' => $this->post('deskripsi'),
-				'lattitude' => $this->post('lattitude'),
-				'longtitude' => $this->post('longtitude'),
-				'gambar' => $user_img,
-				'status' => $this->post('status'),
-				'fk_kategori' => $this->db->where('nama',$this->post('kategori'))->get('kategori')->row(0)->id
-			);
-
-			$insert = $this->db->insert('laporan',$data_pembeli);
-			if (!empty($_FILES)){
-				if ($_FILES["gambar"]["name"]) {
-
-					if
-
-						(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
-
-					{
-						$insert_image = "success";
-
-					} else{
-						$insert_image = "failed";
-
-					}
-				}else{
-					$insert_image = "Image Tidak ada Masukan";
-				}
-				$data_pembeli['gambar'] = base_url()."upload/".$user_img;
+			$kategori_query = $this->db->where('nama',$this->post('kategori'))->get('kategori');
+			if ($kategori_query->num_rows() == 0) {
+				$this->response(array("status"=>"failed","message" => "kategori invalid"));
 			}else{
+				$config['upload_path'] = './uploads/';
+				$config['allowed_types'] = 'gif|jpg|png';
+				$config['max_size']  = '100';
+				$config['max_width']  = '1024';
+				$config['max_height']  = '768';
 
-				$data_pembeli['gambar'] = "";
+				$this->load->library('upload', $config);
 
+				if ( ! $this->upload->do_upload('gambar')){
+					$error = array('error' => $this->upload->display_errors());
+					$this->response(array("status"=>"failed","message" => $error['error']));
+				}
+				else{
+					$upload_data = $this->upload->data();
+					$kategori_data = $kategori_query->row(0);
+					$post_data = array(
+						'judul' => $this->post('judul'),
+						'nama' => $this->post('nama'),
+						'email' => $this->post('email'),
+						'deskripsi' => $this->post('deskripsi'),
+						'lattitude' => $this->post('lattitude'),
+						'longtitude' => $this->post('longtitude'),
+						'gambar' => $upload_data['file_name'],
+						'status' => $this->post('status'),
+						'fk_kategori' => $kategori_data->id
+					);
+					$insert_query = $this->db->insert('laporan',$post_data);
+					if ($insert_query) {
+						$this->response(array("status"=>"success","message" => "Berhasil Tambah Data"));
+					}else{
+						$this->response(array("status"=>"failed","message" => "Gagal Tambah Data"));
+					}
+				}
 			}
-			if ($insert){
-				$this->response(array('status'=>'success','result' =>
-
-					array($data_pembeli),"message"=>$insert));
-
-			}
-			$this->response(array("status"=>"success","message" => "Berhasil"));
 		}
 	}
-	function laporan_put() {
-		$uploaddir = str_replace("application/", "", APPPATH).'upload/';
-		if(!file_exists($uploaddir) && !is_dir($uploaddir)) {
-			echo mkdir($uploaddir, 0750, true);
-		}
-		if (!empty($_FILES)){
-			$path = $_FILES['gambar']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$user_img = rand(10000,99999) . '.' . $ext;
-			$uploadfile = $uploaddir . $user_img;
-			$data_pembeli['gambar'] = "upload/".$user_img;
+
+	function laporanput_post() {
+
+		if ($this->post('judul') == "") {
+			$this->response(array("status"=>"failed","message" => "Judul harus di isi"));
+		}else if ($this->post('deskripsi') == "") {
+			$this->response(array("status"=>"failed","message" => "deskripsi harus di isi"));
+		}else if ($this->post('lattitude') == "") {
+			$this->response(array("status"=>"failed","message" => "lattitude harus di isi"));
+		}else if ($this->post('longtitude') == "") {
+			$this->response(array("status"=>"failed","message" => "longtitude harus di isi"));
+		}else if ($this->post('kategori') == "") {
+			$this->response(array("status"=>"failed","message" => "kategori harus di isi"));
 		}else{
-			$data_pembeli['gambar']="";
-		}
-
-
-		$this->response(array("status"=>"failed","message" => "gambar harus idisi"));
-		
-
-var_dump($this->put('judul'));
-		$gambar = "";
-		$data_pembeli = array(
-			'judul' => $this->put('judul'),
-			'nama' => $this->put('nama'),
-			'email' => $this->put('email'),
-			'deskripsi' => $this->put('deskripsi'),
-			'lattitude' => $this->put('lattitude'),
-			'longtitude' => $this->put('longtitude'),
-			'status' => $this->put('status'),
-			'fk_kategori' => $this->db->where('nama',$this->put('kategori'))->get('kategori')->row(0)->id
-		);
-		if ($empty($_FILES)) {
-			$data_pembeli['gambar'] = $user_img;
-		}
-		$this->db->where('id',$this->put('id'));
-		$insert = $this->db->update('laporan',$data_pembeli);
-		if (!empty($_FILES)){
-			if ($_FILES["gambar"]["name"]) {
-				if
-					(move_uploaded_file($_FILES["gambar"]["tmp_name"],$uploadfile))
-
-				{
-					$insert_image = "success";
-
-				} else{
-					$insert_image = "failed";
-
-				}
+			$kategori_query = $this->db->where('nama',$this->post('kategori'))->get('kategori');
+			if ($kategori_query->num_rows() == 0) {
+				$this->response(array("status"=>"failed","message" => "kategori invalid"));
 			}else{
-				$insert_image = "Image Tidak ada Masukan";
+				
+				$kategori_data = $kategori_query->row(0);
+				$post_data = array(
+					'judul' => $this->post('judul'),
+					'nama' => $this->post('nama'),
+					'email' => $this->post('email'),
+					'deskripsi' => $this->post('deskripsi'),
+					'lattitude' => $this->post('lattitude'),
+					'longtitude' => $this->post('longtitude'),
+					'status' => $this->post('status'),
+					'fk_kategori' => $kategori_data->id,
+				);
+
+				$is_error = false;
+				$error = "";
+				if ($_FILES['gambar']['name'] != "") {
+					$config['upload_path'] = './uploads/';
+					$config['allowed_types'] = 'gif|jpg|png';
+					$config['max_size']  = '100';
+					$config['max_width']  = '1024';
+					$config['max_height']  = '768';
+
+					$this->load->library('upload', $config);
+
+					if ( ! $this->upload->do_upload('gambar')){
+						$error = $this->upload->display_errors();
+						$is_error = true;
+					}
+					else{
+						$upload_data = $this->upload->data();
+						$post_data['gambar'] = $upload_data['file_name'];
+					}
+				}
+
+				if ($is_error) {
+					$this->response(array("status"=>"failed","message" => $error));
+				}else{
+					$this->db->where('id',$this->post('id'));
+					$update_query = $this->db->update('laporan',$post_data);
+					if ($update_query) {
+						$this->response(array("status"=>"success","message" => "Berhasil Edit Data"));
+					}else{
+						$this->response(array("status"=>"failed","message" => "Gagal Edit Data"));
+					}
+				}
+
+
+
 			}
-			$data_pembeli['gambar'] = base_url()."upload/".$user_img;
-		}else{
-
-			$data_pembeli['gambar'] = "";
-
 		}
-		if ($insert){
-			$this->response(array('status'=>'success','result' =>
 
-				array($data_pembeli),"message"=>$insert));
-
-		}
-		$this->response(array("status"=>"success","message" => "Berhasil"));
-		
 	}
 	function laporan_delete($id) {
 		$this->db->where('id', $id);
